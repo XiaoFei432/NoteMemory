@@ -128,18 +128,256 @@ $$J(\omega,b)=\frac{1}{m}\sum_{i=1}^m(-y^{(i)}log\hat{y}^{(i)}-(1-y^{(i)})log(1-
 
 1. 初始化
    
-![](images/2019-12-20-11-21-58.png)
+    ![](images/2019-12-20-11-21-58.png)
+
 2. 朝最抖的下坡方向走一步，不断迭代
 
-![](images/2019-12-20-11-22-03.png)
+    ![](images/2019-12-20-11-22-03.png)
+
 3. 直到走到全局最优解或者接近最优解的地方
 
 **公式化说明**
 
-*一元变量$\omega$*
+*设：参数列表仅有一元变量$\omega$*
 
-z则有$\omega:=\omega-\alpha\frac{dJ(\omega)}{d\omega}$
+则有梯度下降表达式
+$$\omega:=\omega-\alpha\frac{dJ(\omega)}{d\omega}$$
 
-迭代就是不断重复做如果的公式
+迭代就是不断重复做上述公式
 
++ $\alpha$表示学习率(learning rate),用来控制步长,即每次迭代朝梯度下降方向的移动距离(rate=1，单位长度等于导数值,$\Delta y=\Delta x*d$)
+
++ $\frac{dJ(\omega)}{d\omega}$就是代价函数J($\omega$)对参数$\omega$求导
+
+该点的导数就是这个点相切与$J(\omega)$的小三角形的高除以宽
+
+![](images/2019-12-20-13-46-18.png)
+
+假设我们以如图点为初始化点，该点处的斜率的符号是正的，即$\frac{dJ(\omega)}{d\omega}>0$，所以接下来会向变小的方向，即左走一步。
+
+![](images/2019-12-20-13-49-57.png)
+
+整个梯度下降法的迭代过程就是不断地向左走，直至逼近最小值点。
+
+**梯度下降法(2个参数)**
+
+*逻辑回归的代价函数有2个参数$\omega$和b*
+
+则有
+
+$$\omega:=\omega-\alpha\frac{\partial L(\omega,b)}{\partial\omega}$$
+
+$$b:=b-\alpha\frac{\partial L(\omega,b)}{\partial b}$$
+
+d求导(derivative)
+
+$\partial$求偏导(partial derivative)
+
+## 导数(Derivates)
+
+*斜率*
+
+即反映$\Delta x$与$\Delta y$的线性关系
+
+![](images/2019-12-20-14-10-43.png)
+
+若$f(a)=a^2$，则导数为$2a$，即某点导数的值与该点本身有关，即导数不是定值
+
+## 计算图(computation Graph)
+
+神经网络的计算过程都是按照前向或反向传播组织的。
+
++ 首先，我们计算出一个新的网络的输出(前向过程)
+
++ 紧接着进行一个反向传输操作来计算出对应的梯度或者导数
+
+计算图可以解释我们用这种方式组织这些计算的过程。
+
+![](images/2019-12-20-14-18-24.png)
+
+从这个小例子中我们可以看出，通过一个从左向右的过程，你可以计算出的值。为了计算导数，从右到左（红色箭头，和蓝色箭头的过程相反）的过程是用于计算导数最自然的方式。 概括一下：计算图组织计算的形式是用蓝色箭头从左到右的计算。
+
+## 使用计算图求导数
+
+![](images/2019-12-20-14-47-07.png)
+
+**反向传播求$\frac{dJ}{da}$**
+
+![](images/2019-12-20-15-02-56.png)
+
+就像上图红色箭头那样，$\frac{dJ}{da}=\frac{dJ}{dv}\frac{dv}{da}$
+
+*默认符号-dv就是J对v的导数,J是计算图的最终输出，是我们所关心的主体*
+
+所以这是一个计算流程图，就是正向或者说从左到右的计算来计算成本函数J，你可能需要优化的函数，然后反向从右到左计算导数。
+
+## 逻辑回归中的梯度下降
+
+假设样本有2个特征$x_1$,$x_2$，为了计算z,我们需要输入参数$\omega_1$、$\omega_2$和b,除此之外还有特征值$x_1$,$x_2$，因此，有
+
+$$z=\omega_1x_1+\omega_2x_2+b$$
+
+![](images/2019-12-20-15-13-30.png)
+
+如上图可知，该过程的计算图包括以下步骤。
+
++ 得到线性函数的输出值 $z=\omega_1x_1+\omega_2x_2+b$
++ ->经过sigmod激励函数的输出值 $\hat{y}=a=\sigma(z)$
++ ->代价函数L $L(a/\hat{y},y)$
+
+**反向计算代价函数的导数**
+
+根绝上述计算图，可以有
+
+$$dz=\frac{dL(a,y)}{dz}=\frac{dL}{dz}=(\frac{dL}{da})*(\frac{da}{dz})=(-\frac{y}{a}+\frac{(1-y)}{(1-a)})*a(1-a)=a-y$$
+
+现在进行最后一步反向推导，也就是参数$\omega$和b变化对代价函数L的影响，特别地，可以用
+
++ 多样本格式
+
+    $$d\omega_1=\frac{1}{m}\sum_{i=1}^mx_1^{(i)}(a^{(i)}-y^{(i)})$$
+
+    $$d\omega_2=\frac{1}{m}\sum_{i=1}^mx_2^{(i)}(a^{(i)}-y^{(i)})$$
+
+    $$db=dz=\frac{1}{m}\sum_{i=1}^m(a^{(i)}-y^{(i)})$$
+
++ 单样本格式
+
+    $$d\omega_1=x_1*dz$$
+    $$d\omega_2=x_2*dz$$
+    $$db=dz$$
+
+    更新策略(一步):
+    + $\omega_1:=\omega_1-\alpha d\omega_1$
+    + $\omega_2:=\omega_2-\alpha d\omega_2$
+    + $b:=b-\alpha db$
+
+    *a是学习率*
+
+![](images/2019-12-20-16-01-04.png)
+
+## m个样本的梯度下降
+
+我们已经知道多个样本的求导格式，如下
+
+全局代价函数是各个样本代价函数的平均，则其对$\omega_1$的微分，和对$\omega_1$的微分也同样是各项损失对$\omega_1$微分的平均。
+
+algorithm1
+***
+    J=0;dw1=0;dw2=0;db=0;
+    for i = 1 to m
+        z(i) = wx(i)+b;
+        a(i) = sigmoid(z(i));
+        J += -[y(i)log(a(i))+(1-y(i)）log(1-a(i));  #前向传播求J
+
+        dz(i) = a(i)-y(i);
+        dw1 += x1(i)dz(i);
+        dw2 += x2(i)dz(i);
+        db += dz(i);  #反向传播求J对参数w1,w2,b的导数
+    J/= m;
+    dw1/= m;
+    dw2/= m;
+    db/= m; #取平均得到全部训练集的导数
+
+    w=w-alpha*dw
+    b=b-alpha*db #更新参数值
+
+如果样本具有>2的特征，那么他就有>2的参数值列表，就需要另一个for循环嵌套在for i=1 to m
+
+**向量化[矩阵]技术**
+你应用深度学习算法，你会发现在代码中显式地使用for循环使你的算法很低效，同时在深度学习领域会有越来越大的数据集。所以能够应用你的算法且没有显式的for循环会是重要的，并且会帮助你适用于更大的数据集。所以这里有一些叫做向量化技术,它可以允许你的代码摆脱这些显式的for循环。
+
+## 向量化(vectorization)
+
+在深度学习领域，运行向量化是一个关键的技巧
+
+计算$z=\omega^Tx+b$\
+
++ 非向量化方式
+  
+    z=0​
+    for i in range(n_x)
+        z+=w[i]*x[i]
+    z+=b
+
++ 向量化方式
+
+    z=np.dot(w,x)+b # 矩阵乘法
+
+![](images/2019-12-20-16-15-43.png)
+
+example 
+***
+    import numpy as np #导入numpy库
+    a = np.array([1,2,3,4]) #创建一个数据a
+    print(a)
+    # [1 2 3 4]
+    import time #导入时间库
+    a = np.random.rand(1000000)
+    b = np.random.rand(1000000) #通过round随机得到两个一百万维度的数组
+    tic = time.time() #现在测量一下当前时间
+    #向量化的版本
+    c = np.dot(a,b)
+    toc = time.time()
+    print(“Vectorized version:” + str(1000*(toc-tic)) +”ms”) #打印一下向量化的版本的时间
+    ​
+    #继续增加非向量化的版本
+    c = 0
+    tic = time.time()
+    for i in range(1000000):
+        c += a[i]*b[i]
+    toc = time.time()
+    print(c)
+    print(“For loop:” + str(1000*(toc-tic)) + “ms”)#打印for循环的版本的时间
+
+所以当你想写循环时候，检查numpy是否存在类似的内置函数，从而避免使用循环(loop)方式
+
+## 向量化逻辑回归
+
+回忆我们曾经定义了训练集矩阵X($n_x,m$维),即n_x\*m,权重矩阵为n_x\*1,b也是$n_x\*1$
+
+有$[z^{(1)},...,z^{(m)}]=[\omega^Tx^{(1)},...,\omega^Tx^{(m)}]+[b,...,b]$
+
++ 向量化
+
+        Z=np.dot(w.T,X)+b
+        A=sigmod(Z)
+    
+    *注：如果此处的b是一个常数，python会自动将其转化为1\*m维度的向量(python广播机制)*
+
+## 向量化逻辑回归的梯度输出
+
+*注：大写字母代表向量，小写字母代表元素*
+
+已知
+
+![](images/2019-12-20-16-47-03.png)
+
++ 计算dZ
+    $$dz^{(i)}=a^{(i)}-y^{(i)}$$
+
+    dZ=A-Y，$dZ=[dz^{(1)},...,dz^{(n)}]$，
+    
++ 计算db
+
+    $$db=\frac{1}{m}\sum_{i=1}^mdz^{(i)}$$
+
+    $db=\frac{1}{m}*np.sum(dZ)$
+
++ 计算d$\omega$
+
+    $$d\omega=\frac{1}{m}*X*dz^T$$
+
+    $d\omega=\frac{1}{m}*np.dot(X,dZ.T)$
+
+vectorization algorithm
+***
+
+    Z=np.dot(W.T,X)+b
+    A=sigmod(Z)
+    dZ=A-Y
+    dw=1/m*np.dot(X,dz.T)
+    db=1/m*np.sum(dZ)
+    w:=w-alpha*dw
+    b=b-a*db
 
